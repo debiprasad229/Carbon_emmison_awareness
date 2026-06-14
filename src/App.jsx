@@ -43,7 +43,7 @@ export default function App() {
     }
   });
 
-  const [showWizard, setShowWizard] = useState(() => !inputs);
+  const [showWizard, setShowWizard] = useState(false);
   const [habitSavings, setHabitSavings] = useState(0);
   
   const [offsets, setOffsets] = useState({
