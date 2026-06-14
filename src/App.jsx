@@ -14,16 +14,7 @@ const STORAGE_KEY_XP = 'ecopulse_xp';
 const STORAGE_KEY_HABITS = 'ecopulse_habits';
 
 export default function App() {
-  // Lazily initialize states directly from localStorage to prevent double rendering cycles
-  const [inputs, setInputs] = useState(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY_INPUTS);
-      return stored ? JSON.parse(stored) : null;
-    } catch (e) {
-      console.error("Failed to parse stored inputs:", e);
-      return null;
-    }
-  });
+  const [inputs, setInputs] = useState(null);
 
   const [xp, setXp] = useState(() => {
     try {
