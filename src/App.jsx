@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Leaf, RefreshCw, BarChart3, CheckSquare, Globe } from 'lucide-react';
+import { Leaf, RefreshCw, BarChart3, CheckSquare, Globe, Menu } from 'lucide-react';
 import { calculateFootprint, calculateOffsets, getRecommendations } from './utils/carbonCalculations';
 import OnboardingWizard from './components/OnboardingWizard';
 import EcoSphere from './components/EcoSphere';
@@ -16,6 +16,7 @@ import AccessibilitySettings from './components/AccessibilitySettings';
 import CarbonScannerCard from './components/CarbonScannerCard';
 import { calculatePersonality } from './utils/personalityEngine';
 import { generateForecast } from './utils/forecastEngine';
+import Navbar from './components/Navbar';
 
 const STORAGE_KEY_INPUTS = 'ecopulse_inputs';
 const STORAGE_KEY_XP = 'ecopulse_xp';
@@ -69,6 +70,7 @@ export default function App() {
 
   const [showWizard, setShowWizard] = useState(false);
   const [habitSavings, setHabitSavings] = useState(0);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const [offsets, setOffsets] = useState({
     treesPlanted: 0,
@@ -159,11 +161,10 @@ export default function App() {
 
   const handleResetToWelcome = () => {
     try {
-      localStorage.removeItem(STORAGE_KEY_INPUTS);
       setInputs(null);
       setShowWizard(false);
     } catch (e) {
-      console.error("Failed to remove inputs:", e);
+      console.error("Failed to go to welcome screen:", e);
     }
   };
 
@@ -239,35 +240,20 @@ export default function App() {
       {/* Brand Header */}
       <header className="app-header">
         <div className="brand-group" style={{ gap: '8px' }}>
+          {inputs && (
+            <button 
+              className="mobile-menu-btn" 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              aria-label="Toggle Navigation"
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', padding: '4px' }}
+            >
+              <Menu size={24} />
+            </button>
+          )}
           <div onClick={handleResetToWelcome} style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} title="Go to Welcome Page">
             <Leaf className="brand-logo" size={32} />
             <h1 className="brand-name">EcoPulse</h1>
           </div>
-          {inputs && (
-            <>
-              <div style={{ width: '1px', height: '20px', background: 'var(--card-border)', margin: '0 10px' }} />
-              <button
-                type="button"
-                onClick={handleResetToWelcome}
-                style={{
-                  background: 'transparent',
-                  border: 'none',
-                  color: 'var(--text-secondary)',
-                  cursor: 'pointer',
-                  fontSize: '0.9rem',
-                  fontWeight: '600',
-                  fontFamily: 'var(--font-heading)',
-                  padding: '4px 8px',
-                  borderRadius: '6px',
-                  transition: 'var(--transition-smooth)'
-                }}
-                onMouseOver={(e) => { e.target.style.color = 'var(--accent-green)'; e.target.style.background = 'rgba(255,255,255,0.02)'; }}
-                onMouseOut={(e) => { e.target.style.color = 'var(--text-secondary)'; e.target.style.background = 'transparent'; }}
-              >
-                Home
-              </button>
-            </>
-          )}
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -304,12 +290,15 @@ export default function App() {
         </div>
       </header>
 
+      {inputs && <Navbar isOpen={isMobileMenuOpen} setIsOpen={setIsMobileMenuOpen} />}
+
       {/* Main Grid Workspace */}
       <main style={{ flex: '1', display: 'flex', alignItems: 'center', padding: '20px 0 60px' }}>
         {inputs ? (
           <div className="bento-grid">
             {/* ROW 1 */}
             <CarbonScoreCard 
+              id="overview"
               netFootprint={netFootprint} 
               baseline={footprintBreakdown.total} 
               xp={xp}
@@ -324,8 +313,9 @@ export default function App() {
             />
 
             {/* ROW 2 */}
-            <ChartCard categories={footprintBreakdown} />
+            <ChartCard id="analytics" categories={footprintBreakdown} />
             <HabitTrackerCard 
+              id="habits"
               xp={xp} 
               setXp={setXp}
               completedHabits={completedHabits}
@@ -336,6 +326,7 @@ export default function App() {
 
             {/* ROW 3 */}
             <OffsetSimulatorCard 
+              id="offsets"
               offsets={offsets} 
               setOffsets={setOffsets} 
             />
@@ -346,6 +337,7 @@ export default function App() {
 
             {/* Smart Carbon Scanner */}
             <CarbonScannerCard 
+              id="scanner"
               inputs={inputs} 
               onUpdateInputs={saveInputs} 
             />
@@ -376,6 +368,7 @@ export default function App() {
 
             {/* EcoPulse AI Carbon Coach */}
             <EcoPulseAI 
+              id="ai-coach"
               inputs={inputs} 
               footprintBreakdown={footprintBreakdown} 
               netFootprint={netFootprint} 
@@ -425,14 +418,33 @@ export default function App() {
               </div>
             </div>
 
-            <button 
-              type="button"
-              className="btn btn-primary btn-pulse" 
-              style={{ padding: '14px 28px', fontSize: '0.95rem', fontWeight: '700', margin: '0 auto' }}
-              onClick={() => setShowWizard(true)}
-            >
-              Get Started
-            </button>
+            <div style={{ display: 'flex', gap: '15px', justifyContent: 'center', margin: '0 auto' }}>
+              <button 
+                type="button"
+                className="btn btn-primary btn-pulse" 
+                style={{ padding: '14px 28px', fontSize: '0.95rem', fontWeight: '700' }}
+                onClick={() => setShowWizard(true)}
+              >
+                Get Started
+              </button>
+              {localStorage.getItem(STORAGE_KEY_INPUTS) && (
+                <button 
+                  type="button"
+                  className="btn btn-secondary" 
+                  style={{ padding: '14px 28px', fontSize: '0.95rem', fontWeight: '700' }}
+                  onClick={() => {
+                    try {
+                      const stored = localStorage.getItem(STORAGE_KEY_INPUTS);
+                      if (stored) setInputs(JSON.parse(stored));
+                    } catch (e) {
+                      console.error(e);
+                    }
+                  }}
+                >
+                  Dashboard
+                </button>
+              )}
+            </div>
           </div>
         )}
       </main>

@@ -40,6 +40,7 @@ const HABITS = [
 ];
 
 export default function HabitTrackerCard({ 
+  id,
   setXp, 
   completedHabits = {}, 
   setCompletedHabits,
@@ -76,7 +77,7 @@ export default function HabitTrackerCard({
   };
 
   return (
-    <div className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div id={id} className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div>
         <div className="card-header" style={{ marginBottom: '15px' }}>
           <div className="card-title-group">

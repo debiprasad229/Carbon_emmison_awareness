@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { PieChart } from 'lucide-react';
 
-export default function ChartCard({ categories = { transport: 0, energy: 0, diet: 0, shopping: 0 } }) {
+export default function ChartCard({ id, categories = { transport: 0, energy: 0, diet: 0, shopping: 0 } }) {
   const [activeCategory, setActiveCategory] = useState(null);
 
   const total = useMemo(() => {
@@ -51,7 +51,7 @@ export default function ChartCard({ categories = { transport: 0, energy: 0, diet
   const displayUnit = hoveredItem ? `${hoveredItem.percentage}%` : '100%';
 
   return (
-    <div className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div id={id} className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div>
         <div className="card-header" style={{ marginBottom: '10px' }}>
           <div className="card-title-group">

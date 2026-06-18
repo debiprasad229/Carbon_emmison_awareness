@@ -1,7 +1,7 @@
 import { Globe } from 'lucide-react';
 import { calculateOffsets } from '../utils/carbonCalculations';
 
-export default function OffsetSimulatorCard({ offsets = { treesPlanted: 0, cleanEnergyFund: 0, plasticRemoved: 0 }, setOffsets }) {
+export default function OffsetSimulatorCard({ id, offsets = { treesPlanted: 0, cleanEnergyFund: 0, plasticRemoved: 0 }, setOffsets }) {
   
   const handleSliderChange = (e) => {
     const { name, value } = e.target;
@@ -21,7 +21,7 @@ export default function OffsetSimulatorCard({ offsets = { treesPlanted: 0, clean
   const equivalentBulbs = Math.round(totalOffset / 50); // ~50kg per LED bulb over its lifetime or similar
 
   return (
-    <div className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div id={id} className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div>
         <div className="card-header" style={{ marginBottom: '15px' }}>
           <div className="card-title-group">

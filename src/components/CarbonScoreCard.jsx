@@ -1,7 +1,7 @@
 import { Award, Zap, Trees } from 'lucide-react';
 import { getUnlockedBadges } from '../utils/carbonCalculations';
 
-export default function CarbonScoreCard({ netFootprint = 0, baseline = 8000, xp = 0, completedHabits = {}, history = [], onClearHistory, challengeStats = {} }) {
+export default function CarbonScoreCard({ id, netFootprint = 0, baseline = 8000, xp = 0, completedHabits = {}, history = [], onClearHistory, challengeStats = {} }) {
   const tons = (netFootprint / 1000).toFixed(1);
   const percentChange = baseline > 0 
     ? Math.round(((netFootprint - baseline) / baseline) * 100) 
@@ -21,7 +21,7 @@ export default function CarbonScoreCard({ netFootprint = 0, baseline = 8000, xp 
   const isTargetAchieved = targetDiff <= 0;
 
   return (
-    <div className="bento-card col-8" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div id={id} className="bento-card col-8" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div>
         <div className="card-header">
           <div className="card-title-group">

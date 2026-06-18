@@ -4,6 +4,7 @@ import { Bot, Send, Trash2, Info, HelpCircle, AlertCircle } from 'lucide-react';
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 export default function EcoPulseAI({ 
+  id,
   inputs, 
   footprintBreakdown, 
   netFootprint, 
@@ -299,7 +300,7 @@ Instructions:
   };
 
   return (
-    <div className="bento-card col-12" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div id={id} className="bento-card col-12" style={{ display: 'flex', flexDirection: 'column' }}>
       
       {/* Card Header */}
       <div className="card-header" style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: '16px', marginBottom: '20px' }}>
