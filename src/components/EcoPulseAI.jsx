@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Bot, Send, Trash2, Info, HelpCircle, AlertCircle } from 'lucide-react';
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const GEMINI_API_KEY = true; // Now handled securely by backend
 
 export default function EcoPulseAI({ 
   id,
@@ -244,21 +244,18 @@ Instructions:
         parts: [{ text: messageContent }]
       });
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            contents,
-            systemInstruction: {
-              parts: [{ text: systemPrompt }]
-            }
-          })
-        }
-      );
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents,
+          systemInstruction: {
+            parts: [{ text: systemPrompt }]
+          }
+        })
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));

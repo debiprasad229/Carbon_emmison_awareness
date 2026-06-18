@@ -82,7 +82,7 @@ export default function CarbonScannerCard({ id, inputs, onUpdateInputs }) {
 
       try {
         const isImage = selectedFile.type.startsWith('image/');
-        const geminiKey = import.meta.env.VITE_GEMINI_API_KEY;
+        const geminiKey = true; // Now handled securely by backend
 
         let result;
         if (isImage && geminiKey) {

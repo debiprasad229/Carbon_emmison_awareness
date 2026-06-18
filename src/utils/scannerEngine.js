@@ -5,7 +5,7 @@
 
 import { EMISSION_FACTORS } from './carbonCalculations';
 
-const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
+const GEMINI_API_KEY = true; // Now handled securely by backend
 
 /**
  * Parses receipt/bill document text locally using regular expressions.
@@ -144,33 +144,27 @@ Return ONLY a valid JSON object matching this schema (do not wrap in markdown or
 }
 `;
 
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        contents: [
-          {
-            parts: [
-              { text: promptText },
-              {
-                inlineData: {
-                  mimeType: mimeType || 'image/jpeg',
-                  data: base64Clean
-                }
+  const response = await fetch('/api/scan', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [
+        {
+          parts: [
+            { text: promptText },
+            {
+              inlineData: {
+                mimeType: mimeType || 'image/jpeg',
+                data: base64Clean
               }
-            ]
-          }
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json'
+            }
+          ]
         }
-      })
-    }
-  );
+      ]
+    })
+  });
 
   if (!response.ok) {
     throw new Error(`API Error: ${response.status} ${response.statusText}`);

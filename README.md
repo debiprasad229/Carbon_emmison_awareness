@@ -11,6 +11,8 @@ In the fight against climate change, awareness is the first step. However, calcu
 * **Interactive Dashboard**: View your carbon metrics synced in real-time.
 * **Smart Recommendations**: Get actionable insights on how to reduce your emissions.
 * **History & Tracking**: Robust history-tracking feature to monitor your progress over time.
+* **Gamification & Habit Tracking**: Earn XP, build streaks, and unlock levels by completing daily green actions.
+* **Carbon Offset Simulator**: Simulate the impact of your contributions to green projects (tree planting, clean energy, plastic cleanup).
 * **Premium UI/UX**: Built with modern design aesthetics, micro-animations, and glassmorphism.
 
 ## 📸 Screenshots
@@ -88,5 +90,4 @@ graph LR
 
 ## 🔭 Future Scope
 * **Social Sharing**: Allow users to share their carbon reduction milestones on social media.
-* **Gamification**: Implement a leaderboard and achievement badges to incentivize eco-friendly habits.
 * **Organizational Accounts**: Scale the platform to support enterprise-level footprint tracking and ESG reporting.
