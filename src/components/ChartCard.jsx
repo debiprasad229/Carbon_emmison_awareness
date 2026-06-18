@@ -103,18 +103,30 @@ export default function ChartCard({ categories = { transport: 0, energy: 0, diet
                     strokeDashoffset={item.strokeOffset}
                     strokeLinecap="round"
                     cursor="pointer"
+                    tabIndex="0"
+                    role="button"
+                    aria-label={`Category ${item.label}: ${item.value.toLocaleString()} kg CO2e, representing ${item.percentage}% of total`}
                     onMouseEnter={() => setActiveCategory(item.id)}
                     onMouseLeave={() => setActiveCategory(null)}
+                    onFocus={() => setActiveCategory(item.id)}
+                    onBlur={() => setActiveCategory(null)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setActiveCategory(item.id);
+                      }
+                    }}
                     style={{
                       transformOrigin: 'center',
-                      transition: 'stroke-width 0.2s ease, stroke 0.2s ease'
+                      transition: 'stroke-width 0.2s ease, stroke 0.2s ease',
+                      outline: 'none'
                     }}
                   />
                 ))}
               </svg>
 
               {/* Center textual indicator */}
-              <div className="chart-center-text">
+              <div className="chart-center-text" aria-live="polite">
                 <span className="chart-center-value">{displayValue.toLocaleString()}</span>
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)' }}>kg CO₂e/yr</span>
                 <span className="chart-center-label" style={{ color: hoveredItem ? hoveredItem.color : 'var(--text-secondary)', fontWeight: 700, marginTop: '4px' }}>
@@ -124,19 +136,31 @@ export default function ChartCard({ categories = { transport: 0, energy: 0, diet
             </div>
 
             {/* Custom Interactive Legend */}
-            <div className="chart-legend">
+            <div className="chart-legend" role="list" aria-label="Emission Breakdown Legend">
               {data.map(item => (
                 <div 
                   key={item.id} 
                   className="legend-item"
+                  tabIndex="0"
+                  role="button"
+                  aria-label={`Highlight ${item.label} emissions`}
                   onMouseEnter={() => setActiveCategory(item.id)}
                   onMouseLeave={() => setActiveCategory(null)}
+                  onFocus={() => setActiveCategory(item.id)}
+                  onBlur={() => setActiveCategory(null)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setActiveCategory(item.id);
+                    }
+                  }}
                   style={{
                     cursor: 'pointer',
                     padding: '4px 8px',
                     borderRadius: '6px',
                     background: activeCategory === item.id ? 'rgba(255, 255, 255, 0.04)' : 'transparent',
-                    transition: 'var(--transition-smooth)'
+                    transition: 'var(--transition-smooth)',
+                    outline: 'none'
                   }}
                 >
                   <span className="legend-color" style={{ backgroundColor: item.color }} />

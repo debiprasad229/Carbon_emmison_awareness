@@ -168,8 +168,8 @@ export default function OnboardingWizard({ onComplete }) {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Primary Mode of Transport</label>
-                <div className="form-select-group">
+                <label className="form-label" id="transport-type-label">Primary Mode of Transport</label>
+                <div className="form-select-group" role="radiogroup" aria-labelledby="transport-type-label">
                   {[
                     { val: 'gasoline', label: 'Gasoline Car' },
                     { val: 'hybrid', label: 'Hybrid Car' },
@@ -180,6 +180,8 @@ export default function OnboardingWizard({ onComplete }) {
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={inputs.transportType === opt.val}
                       className={`select-chip ${inputs.transportType === opt.val ? 'active' : ''}`}
                       onClick={() => setSelectValue('transportType', opt.val)}
                     >
@@ -276,8 +278,8 @@ export default function OnboardingWizard({ onComplete }) {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Primary Heating Fuel</label>
-                <div className="form-select-group">
+                <label className="form-label" id="heating-source-label">Primary Heating Fuel</label>
+                <div className="form-select-group" role="radiogroup" aria-labelledby="heating-source-label">
                   {[
                     { val: 'gas', label: 'Natural Gas' },
                     { val: 'oil', label: 'Fuel Oil' },
@@ -288,6 +290,8 @@ export default function OnboardingWizard({ onComplete }) {
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={inputs.heatingSource === opt.val}
                       className={`select-chip ${inputs.heatingSource === opt.val ? 'active' : ''}`}
                       onClick={() => setSelectValue('heatingSource', opt.val)}
                     >
@@ -309,8 +313,8 @@ export default function OnboardingWizard({ onComplete }) {
               </p>
 
               <div className="form-group">
-                <label className="form-label">Dietary Habit</label>
-                <div className="form-select-group">
+                <label className="form-label" id="diet-type-label">Dietary Habit</label>
+                <div className="form-select-group" role="radiogroup" aria-labelledby="diet-type-label">
                   {[
                     { val: 'heavyMeat', label: 'Meat-heavy (Daily beef/pork)' },
                     { val: 'lowMeat', label: 'Low Meat (Mostly poultry/veg)' },
@@ -320,6 +324,8 @@ export default function OnboardingWizard({ onComplete }) {
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={inputs.dietType === opt.val}
                       className={`select-chip ${inputs.dietType === opt.val ? 'active' : ''}`}
                       onClick={() => setSelectValue('dietType', opt.val)}
                     >
@@ -330,8 +336,8 @@ export default function OnboardingWizard({ onComplete }) {
               </div>
 
               <div className="form-group">
-                <label className="form-label">Shopping Habit (Clothing, Electronics)</label>
-                <div className="form-select-group">
+                <label className="form-label" id="shopping-habit-label">Shopping Habit (Clothing, Electronics)</label>
+                <div className="form-select-group" role="radiogroup" aria-labelledby="shopping-habit-label">
                   {[
                     { val: 'consumerist', label: 'Consumerist (New devices & outfits)' },
                     { val: 'average', label: 'Average (Occasional purchases)' },
@@ -340,6 +346,8 @@ export default function OnboardingWizard({ onComplete }) {
                     <button
                       key={opt.val}
                       type="button"
+                      role="radio"
+                      aria-checked={inputs.shoppingHabit === opt.val}
                       className={`select-chip ${inputs.shoppingHabit === opt.val ? 'active' : ''}`}
                       onClick={() => setSelectValue('shoppingHabit', opt.val)}
                     >

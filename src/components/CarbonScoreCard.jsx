@@ -1,13 +1,20 @@
 import { Award, Zap, Trees } from 'lucide-react';
 import { getUnlockedBadges } from '../utils/carbonCalculations';
 
-export default function CarbonScoreCard({ netFootprint = 0, baseline = 8000, xp = 0, completedHabits = {} }) {
+export default function CarbonScoreCard({ netFootprint = 0, baseline = 8000, xp = 0, completedHabits = {}, history = [], onClearHistory, challengeStats = {} }) {
   const tons = (netFootprint / 1000).toFixed(1);
   const percentChange = baseline > 0 
     ? Math.round(((netFootprint - baseline) / baseline) * 100) 
     : 0;
 
-  const unlockedBadges = getUnlockedBadges(xp, completedHabits).filter(b => b.unlocked);
+  // Calculate change vs initial baseline in history
+  const initialEntry = history[history.length - 1];
+  const initialFootprint = initialEntry ? initialEntry.footprint : baseline;
+  const historyChange = initialFootprint > 0
+    ? Math.round(((netFootprint - initialFootprint) / initialFootprint) * 100)
+    : 0;
+
+  const unlockedBadges = getUnlockedBadges(xp, completedHabits, challengeStats).filter(b => b.unlocked);
 
   // Dynamic comparison statement
   const targetDiff = netFootprint - 2000; // 2,000 kg is standard target for 1.5C warming path
@@ -28,8 +35,8 @@ export default function CarbonScoreCard({ netFootprint = 0, baseline = 8000, xp 
           </span>
         </div>
 
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '30px', margin: '15px 0 25px' }}>
-          <div>
+        <div className="scoreboard-stats">
+          <div className="scoreboard-stats-item">
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Net Footprint
             </span>
@@ -46,7 +53,7 @@ export default function CarbonScoreCard({ netFootprint = 0, baseline = 8000, xp 
             </p>
           </div>
 
-          <div style={{ flex: 1, minWidth: '180px' }}>
+          <div className="scoreboard-stats-item">
             <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
               Status vs. Baseline
             </span>
@@ -78,66 +85,109 @@ export default function CarbonScoreCard({ netFootprint = 0, baseline = 8000, xp 
               )}
             </p>
           </div>
+
+          {history.length > 1 && (
+            <div className="scoreboard-stats-item">
+              <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Calculation History
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '8px' }}>
+                {history.slice(0, 3).map((item, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', borderBottom: '1px solid rgba(255,255,255,0.03)', paddingBottom: '4px' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{item.timestamp}</span>
+                    <span style={{ fontWeight: '700', color: 'var(--text-secondary)' }}>{item.footprint.toLocaleString()} kg</span>
+                  </div>
+                ))}
+                
+                {/* Overall comparison to initial calculation */}
+                <div style={{ fontSize: '0.75rem', marginTop: '6px', color: historyChange < 0 ? 'var(--success)' : historyChange === 0 ? 'var(--text-muted)' : 'var(--danger)', fontWeight: '600' }}>
+                  {historyChange < 0 ? (
+                    <span>↓ {Math.abs(historyChange)}% vs. first baseline</span>
+                  ) : historyChange === 0 ? (
+                    <span>No change vs. first baseline</span>
+                  ) : (
+                    <span>↑ {historyChange}% vs. first baseline</span>
+                  )}
+                </div>
+
+                {/* Clear History Button */}
+                <button
+                  type="button"
+                  onClick={onClearHistory}
+                  style={{
+                    background: 'transparent',
+                    border: 'none',
+                    color: 'var(--text-muted)',
+                    cursor: 'pointer',
+                    fontSize: '0.7rem',
+                    marginTop: '10px',
+                    padding: 0,
+                    textDecoration: 'underline',
+                    alignSelf: 'flex-start',
+                    textAlign: 'left',
+                    transition: 'var(--transition-smooth)'
+                  }}
+                  onMouseOver={(e) => e.target.style.color = 'var(--danger)'}
+                  onMouseOut={(e) => e.target.style.color = 'var(--text-muted)'}
+                >
+                  Clear History
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Gamification Summary Inside the Score Bento Card */}
-      <div 
-        style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'space-between', 
-          background: 'rgba(255,255,255,0.02)', 
-          border: '1px solid var(--card-border)', 
-          borderRadius: 'var(--border-radius-md)', 
-          padding: '12px 18px',
-          marginTop: '10px'
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Zap size={18} style={{ color: 'var(--accent-green)' }} />
-          <div>
-            <p style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)' }}>Eco XP Points</p>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Earned from actions</p>
-          </div>
-        </div>
-        <span className="xp-indicator" style={{ fontSize: '1.1rem', fontFamily: 'var(--font-heading)' }}>
-          {xp} XP
-        </span>
-
-        <div style={{ height: '30px', width: '1px', background: 'var(--card-border)' }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <Award size={18} style={{ color: 'var(--accent-purple)' }} />
-          <div>
-            <p style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)' }}>Badges Unlocked</p>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{unlockedBadges.length} Active achievements</p>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '4px' }}>
-          {unlockedBadges.slice(0, 3).map(badge => (
-            <div 
-              key={badge.id}
-              style={{
-                width: '24px',
-                height: '24px',
-                borderRadius: '50%',
-                background: 'var(--accent-purple-glow)',
-                border: '1px solid var(--accent-purple)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.6rem',
-                color: 'var(--accent-purple)',
-                fontWeight: 'bold',
-                cursor: 'help'
-              }}
-              title={`${badge.name}: ${badge.description}`}
-            >
-              ⭐
+      <div className="gamification-summary">
+        <div className="summary-section">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Zap size={18} style={{ color: 'var(--accent-green)' }} />
+            <div>
+              <p style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)' }}>Eco XP Points</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Earned from actions</p>
             </div>
-          ))}
+          </div>
+          <span className="xp-indicator" style={{ fontSize: '1.1rem', fontFamily: 'var(--font-heading)' }}>
+            {xp} XP
+          </span>
+        </div>
+
+        <div className="divider" />
+
+        <div className="summary-section">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Award size={18} style={{ color: 'var(--accent-purple)' }} />
+            <div>
+              <p style={{ fontSize: '0.8rem', fontWeight: '700', color: 'var(--text-primary)' }}>Badges Unlocked</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{unlockedBadges.length} Active achievements</p>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+            {unlockedBadges.slice(0, 3).map(badge => (
+              <div 
+                key={badge.id}
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  borderRadius: '50%',
+                  background: 'var(--accent-purple-glow)',
+                  border: '1px solid var(--accent-purple)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.6rem',
+                  color: 'var(--accent-purple)',
+                  fontWeight: 'bold',
+                  cursor: 'help'
+                }}
+                title={`${badge.name}: ${badge.description}`}
+              >
+                ⭐
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

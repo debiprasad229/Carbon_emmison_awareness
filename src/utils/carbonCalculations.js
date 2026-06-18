@@ -250,7 +250,9 @@ export function getRecommendations(inputs, results) {
  * @param {Object} completedHabits - Object mapping habit IDs to counts or booleans
  * @returns {Array<Object>} Unlocked badges
  */
-export function getUnlockedBadges(xp, completedHabits = {}) {
+export function getUnlockedBadges(xp, completedHabits = {}, challengeStats = {}) {
+  const { streak = 0, completedTotal = 0 } = challengeStats || {};
+
   const badges = [
     {
       id: 'badge_newbie',
@@ -293,6 +295,20 @@ export function getUnlockedBadges(xp, completedHabits = {}) {
       description: 'Log 5 home energy-saving activities.',
       icon: 'Lightbulb',
       unlocked: (completedHabits.unplug_unused || 0) >= 5
+    },
+    {
+      id: 'badge_streak_5',
+      name: 'Streak Master',
+      description: 'Maintain a 5-day daily challenge streak.',
+      icon: 'Flame',
+      unlocked: streak >= 5
+    },
+    {
+      id: 'badge_challenges_10',
+      name: 'Eco Champion',
+      description: 'Complete 10 daily, weekly, or monthly sustainability challenges.',
+      icon: 'Trophy',
+      unlocked: completedTotal >= 10
     }
   ];
 

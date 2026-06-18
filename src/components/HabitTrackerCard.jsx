@@ -48,8 +48,9 @@ export default function HabitTrackerCard({
 }) {
 
   const handleToggleHabit = (habitId, isChecked, xpValue, annualSavingValue) => {
-    // 1. Trigger Confetti celebration for positive reinforcement
-    if (isChecked) {
+    // 1. Trigger Confetti celebration for positive reinforcement if motion is not reduced
+    const isReducedMotion = document.body.classList.contains('reduced-motion');
+    if (isChecked && !isReducedMotion) {
       confetti({
         particleCount: 80,
         spread: 60,
