@@ -22,7 +22,15 @@ In the fight against climate change, awareness is the first step. However, calcu
 * **Premium UI/UX**: Glassmorphism, micro-animations, and a dark-mode design system built with Vanilla CSS.
 
 ## 📸 Screenshots
-*(Add screenshots of the Smart Carbon Scanner, Interactive Dashboard, and AI Chat here)*
+
+### 🤖 AI Coach Analysis
+![AI Coach Analysis](public/ai-coach.png)
+
+### 📊 Interactive Dashboard & EcoSphere
+![Interactive Dashboard](public/dashboard.png)
+
+### 🌳 Carbon Offset Simulator & Reduction Plan
+![Carbon Offset Simulator](public/offsets.png)
 
 ## 🏗️ Architecture
 ```mermaid
