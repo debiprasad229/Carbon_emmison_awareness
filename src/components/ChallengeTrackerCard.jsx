@@ -23,30 +23,16 @@ export default function ChallengeTrackerCard({
   const totalOffsets = (offsets.treesPlanted || 0) * 22 + (offsets.cleanEnergyFund || 0) * 5 + (offsets.plasticRemoved || 0) * 2;
   const habitCount = Object.values(completedHabits || {}).reduce((a, b) => a + b, 0);
 
-  const [prevTotalOffsets, setPrevTotalOffsets] = useState(totalOffsets);
-  const [prevHabitCount, setPrevHabitCount] = useState(habitCount);
-
-  if (totalOffsets !== prevTotalOffsets || habitCount !== prevHabitCount) {
-    setPrevTotalOffsets(totalOffsets);
-    setPrevHabitCount(habitCount);
-    const updated = challenges.map(ch => {
-      if (ch.id === 'monthly_offset') {
-        const newProgress = Math.min(ch.goal, Math.round(totalOffsets));
-        return { ...ch, progress: newProgress };
-      }
-      if (ch.id === 'monthly_habits') {
-        const newProgress = Math.min(ch.goal, habitCount);
-        return { ...ch, progress: newProgress };
-      }
-      return ch;
-    });
-    setChallenges(updated);
-    try {
-      localStorage.setItem('ecopulse_challenges_list', JSON.stringify(updated));
-    } catch (e) {
-      console.error('Failed to save challenges:', e);
+  // Derive challenges with updated progress dynamically during render to avoid cascading re-renders
+  const renderedChallenges = challenges.map(ch => {
+    if (ch.id === 'monthly_offset') {
+      return { ...ch, progress: Math.min(ch.goal, Math.round(totalOffsets)) };
     }
-  }
+    if (ch.id === 'monthly_habits') {
+      return { ...ch, progress: Math.min(ch.goal, habitCount) };
+    }
+    return ch;
+  });
 
   // Save challenges list when manually modified
   const saveChallengesList = (updatedList) => {
@@ -126,9 +112,9 @@ export default function ChallengeTrackerCard({
   };
 
   // Filter challenges by type
-  const dailies = challenges.filter(ch => ch.type === 'daily');
-  const weeklies = challenges.filter(ch => ch.type === 'weekly');
-  const monthlies = challenges.filter(ch => ch.type === 'monthly');
+  const dailies = renderedChallenges.filter(ch => ch.type === 'daily');
+  const weeklies = renderedChallenges.filter(ch => ch.type === 'weekly');
+  const monthlies = renderedChallenges.filter(ch => ch.type === 'monthly');
 
   return (
     <div className="bento-card col-12 challenge-card-container">

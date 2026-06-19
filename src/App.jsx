@@ -354,6 +354,7 @@ export default function App() {
 
             {/* Carbon Personality Profile */}
             <CarbonPersonalityCard 
+              key={personality?.key || 'default'}
               personality={personality} 
               xp={xp} 
               setXp={setXp} 

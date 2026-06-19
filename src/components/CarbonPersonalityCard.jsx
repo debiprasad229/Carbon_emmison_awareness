@@ -14,18 +14,14 @@ export default function CarbonPersonalityCard({
   personality, 
   setXp 
 }) {
-  const [challengeClaimed, setChallengeClaimed] = useState(false);
-  const [prevKey, setPrevKey] = useState(personality?.key);
-
-  if (personality?.key !== prevKey) {
-    setPrevKey(personality?.key);
+  const [challengeClaimed, setChallengeClaimed] = useState(() => {
     try {
       const stored = localStorage.getItem(`ecopulse_claimed_challenge_${personality?.key}`);
-      setChallengeClaimed(stored === 'true');
+      return stored === 'true';
     } catch {
-      setChallengeClaimed(false);
+      return false;
     }
-  }
+  });
 
   if (!personality) return null;
 
