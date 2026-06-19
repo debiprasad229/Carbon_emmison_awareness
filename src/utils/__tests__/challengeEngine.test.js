@@ -1,7 +1,7 @@
 /**
  * Unit Tests for challengeEngine.js
  */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { INITIAL_CHALLENGES, updateStreakOnClaim } from '../challengeEngine';
 
 describe('INITIAL_CHALLENGES', () => {

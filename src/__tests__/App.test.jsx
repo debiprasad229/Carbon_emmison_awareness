@@ -3,7 +3,7 @@
  * Tests: rendering states, localStorage persistence, navigation, accessibility widget
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
 
@@ -113,9 +113,9 @@ describe('App — Dashboard State (localStorage hydration)', () => {
     expect(screen.getByLabelText('Recalculate baseline footprint')).toBeInTheDocument();
   });
 
-  it('shows Home button on dashboard', () => {
+  it('shows Overview button on dashboard', () => {
     render(<App />);
-    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getAllByText('Overview')[0]).toBeInTheDocument();
   });
 
   it('calls window.scrollTo(0,0) when inputs load', () => {

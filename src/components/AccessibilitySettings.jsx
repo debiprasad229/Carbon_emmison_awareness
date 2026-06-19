@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Eye, HelpCircle } from 'lucide-react';
+import { Eye } from 'lucide-react';
 
 export default function AccessibilitySettings({
   highContrast,

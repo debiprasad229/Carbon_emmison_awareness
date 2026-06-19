@@ -1,14 +1,11 @@
-import { useState, useMemo } from 'react';
-import { TrendingUp, TrendingDown, Sparkles, AlertTriangle, ArrowRight, Activity, Percent } from 'lucide-react';
+import { useState, useMemo, useCallback } from 'react';
+import { TrendingUp, TrendingDown, Sparkles, Activity } from 'lucide-react';
 
 export default function CarbonForecastCard({ 
   forecast, 
-  netFootprint = 0,
   recommendations = [] 
 }) {
   const [hoveredIdx, setHoveredIdx] = useState(null);
-
-  if (!forecast || !forecast.forecastData || forecast.forecastData.length === 0) return null;
 
   // Chart configuration & dimensions
   const svgWidth = 480;
@@ -22,39 +19,37 @@ export default function CarbonForecastCard({
   const chartHeight = svgHeight - paddingTop - paddingBottom;
 
   // X & Y scalers
-  const getX = (index) => paddingLeft + (index * (chartWidth / 5));
+  const getX = useCallback((index) => paddingLeft + (index * (chartWidth / 5)), [chartWidth, paddingLeft]);
 
   // Determine limits of the chart (dynamic min/max)
-  const allValues = forecast.forecastData.flatMap(d => [d.baseline, d.bestCase, d.worstCase]);
-  const maxVal = Math.max(...allValues, 2000) * 1.05; // pad top
-  const minVal = Math.max(0, Math.min(...allValues) - 600); // pad bottom
+  const forecastData = useMemo(() => forecast?.forecastData || [], [forecast]);
+  const allValues = forecastData.flatMap(d => [d.baseline, d.bestCase, d.worstCase]);
+  const maxVal = (allValues.length ? Math.max(...allValues, 2000) : 2000) * 1.05; // pad top
+  const minVal = allValues.length ? Math.max(0, Math.min(...allValues) - 600) : 0; // pad bottom
   const valRange = maxVal - minVal || 1;
 
-  const getY = (val) => svgHeight - paddingBottom - (((val - minVal) / valRange) * chartHeight);
+  const getY = useCallback((val) => svgHeight - paddingBottom - (((val - minVal) / valRange) * chartHeight), [minVal, valRange, chartHeight, svgHeight, paddingBottom]);
 
   // Generate paths
   const baselineLinePath = useMemo(() => {
-    return forecast.forecastData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d.baseline)}`).join(' ');
-  }, [forecast.forecastData, maxVal, minVal]);
+    return forecastData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d.baseline)}`).join(' ');
+  }, [forecastData, getX, getY]);
 
   const bestCaseLinePath = useMemo(() => {
-    return forecast.forecastData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d.bestCase)}`).join(' ');
-  }, [forecast.forecastData, maxVal, minVal]);
+    return forecastData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d.bestCase)}`).join(' ');
+  }, [forecastData, getX, getY]);
 
   const worstCaseLinePath = useMemo(() => {
-    return forecast.forecastData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d.worstCase)}`).join(' ');
-  }, [forecast.forecastData, maxVal, minVal]);
+    return forecastData.map((d, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(d.worstCase)}`).join(' ');
+  }, [forecastData, getX, getY]);
 
   const bestCaseAreaPath = useMemo(() => {
-    if (forecast.forecastData.length === 0) return '';
+    if (forecastData.length === 0) return '';
     const firstX = getX(0);
     const lastX = getX(5);
     const yBottom = svgHeight - paddingBottom;
     return `${bestCaseLinePath} L ${lastX} ${yBottom} L ${firstX} ${yBottom} Z`;
-  }, [bestCaseLinePath, forecast.forecastData]);
-
-  // Forecasted details for hovering
-  const hoveredData = hoveredIdx !== null ? forecast.forecastData[hoveredIdx] : null;
+  }, [bestCaseLinePath, forecastData, getX, svgHeight, paddingBottom]);
 
   // Grid lines (y-axis values)
   const gridTicks = useMemo(() => {
@@ -66,12 +61,6 @@ export default function CarbonForecastCard({
     return ticks;
   }, [minVal, valRange]);
 
-  // Goal probability circular progress ring calculations
-  // Radius = 34, Circumference = 2 * PI * r = ~213.6
-  const ringRadius = 34;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const strokeOffset = ringCircumference - (forecast.goalProbability / 100) * ringCircumference;
-
   // Selected interventions (top 2 interventions with actual savings)
   const sortedInterventions = useMemo(() => {
     return [...recommendations]
@@ -79,6 +68,16 @@ export default function CarbonForecastCard({
       .sort((a, b) => b.savings - a.savings)
       .slice(0, 2);
   }, [recommendations]);
+
+  if (!forecast || !forecast.forecastData || forecast.forecastData.length === 0) return null;
+
+  const hoveredData = hoveredIdx !== null ? forecast.forecastData[hoveredIdx] : null;
+
+  // Goal probability circular progress ring calculations
+  // Radius = 34, Circumference = 2 * PI * r = ~213.6
+  const ringRadius = 34;
+  const ringCircumference = 2 * Math.PI * ringRadius;
+  const strokeOffset = ringCircumference - (forecast.goalProbability / 100) * ringCircumference;
 
   return (
     <div className="bento-card col-12 forecast-card-container">

@@ -18,11 +18,11 @@ export function parseDocumentLocally(text = '', fileName = '') {
   const normalizedText = (text + ' ' + fileName).toLowerCase();
 
   let documentType = 'shopping_receipt';
-  let confidence = 85;
-  let parsedValue = 0;
+  let confidence;
+  let parsedValue;
   let unit = 'USD';
   let details = 'Generic Purchase';
-  let calculatedCarbon = 0;
+  let calculatedCarbon;
 
   // 1. Identify Document Type
   if (normalizedText.includes('electricity') || normalizedText.includes('power') || normalizedText.includes('utility') || normalizedText.includes('kwh')) {
@@ -181,7 +181,7 @@ Return ONLY a valid JSON object matching this schema (do not wrap in markdown or
   try {
     return JSON.parse(responseText.trim());
   } catch (err) {
-    console.error("Failed to parse Gemini output as JSON:", responseText);
+    console.error("Failed to parse Gemini output as JSON:", err, responseText);
     // Attempt local parse fallback if LLM response is not strict JSON
     return parseDocumentLocally(responseText, 'Gemini OCR Output');
   }

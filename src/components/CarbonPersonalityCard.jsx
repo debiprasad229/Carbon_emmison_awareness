@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Award, Compass, Zap, Leaf, AlertCircle, CheckCircle2, XCircle, Sparkles, Trophy } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -12,20 +12,20 @@ const ICON_MAP = {
 
 export default function CarbonPersonalityCard({ 
   personality, 
-  xp, 
   setXp 
 }) {
   const [challengeClaimed, setChallengeClaimed] = useState(false);
+  const [prevKey, setPrevKey] = useState(personality?.key);
 
-  // Sync claimed state when personality key changes
-  useEffect(() => {
+  if (personality?.key !== prevKey) {
+    setPrevKey(personality?.key);
     try {
-      const stored = localStorage.getItem(`ecopulse_claimed_challenge_${personality.key}`);
+      const stored = localStorage.getItem(`ecopulse_claimed_challenge_${personality?.key}`);
       setChallengeClaimed(stored === 'true');
     } catch {
       setChallengeClaimed(false);
     }
-  }, [personality.key]);
+  }
 
   if (!personality) return null;
 

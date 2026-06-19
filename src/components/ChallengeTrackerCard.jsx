@@ -1,10 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Trophy, Flame, Plus, Check, Sparkles, Target, Calendar, Clock } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { updateStreakOnClaim, INITIAL_CHALLENGES } from '../utils/challengeEngine';
 
 export default function ChallengeTrackerCard({ 
-  xp, 
   setXp, 
   completedHabits = {}, 
   offsets = {}, 
@@ -24,27 +23,30 @@ export default function ChallengeTrackerCard({
   const totalOffsets = (offsets.treesPlanted || 0) * 22 + (offsets.cleanEnergyFund || 0) * 5 + (offsets.plasticRemoved || 0) * 2;
   const habitCount = Object.values(completedHabits || {}).reduce((a, b) => a + b, 0);
 
-  // Sync simulator offsets and logged habits to monthly goal challenges
-  useEffect(() => {
-    setChallenges(prev => {
-      const updated = prev.map(ch => {
-        if (ch.id === 'monthly_offset') {
-          const newProgress = Math.min(ch.goal, Math.round(totalOffsets));
-          // Auto-mark completed if progress reached goal but preserve claimed status
-          return { ...ch, progress: newProgress };
-        }
-        if (ch.id === 'monthly_habits') {
-          const newProgress = Math.min(ch.goal, habitCount);
-          return { ...ch, progress: newProgress };
-        }
-        return ch;
-      });
+  const [prevTotalOffsets, setPrevTotalOffsets] = useState(totalOffsets);
+  const [prevHabitCount, setPrevHabitCount] = useState(habitCount);
 
-      // Save to localStorage
-      localStorage.setItem('ecopulse_challenges_list', JSON.stringify(updated));
-      return updated;
+  if (totalOffsets !== prevTotalOffsets || habitCount !== prevHabitCount) {
+    setPrevTotalOffsets(totalOffsets);
+    setPrevHabitCount(habitCount);
+    const updated = challenges.map(ch => {
+      if (ch.id === 'monthly_offset') {
+        const newProgress = Math.min(ch.goal, Math.round(totalOffsets));
+        return { ...ch, progress: newProgress };
+      }
+      if (ch.id === 'monthly_habits') {
+        const newProgress = Math.min(ch.goal, habitCount);
+        return { ...ch, progress: newProgress };
+      }
+      return ch;
     });
-  }, [totalOffsets, habitCount]);
+    setChallenges(updated);
+    try {
+      localStorage.setItem('ecopulse_challenges_list', JSON.stringify(updated));
+    } catch (e) {
+      console.error('Failed to save challenges:', e);
+    }
+  }
 
   // Save challenges list when manually modified
   const saveChallengesList = (updatedList) => {

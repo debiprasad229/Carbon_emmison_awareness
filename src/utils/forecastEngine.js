@@ -77,7 +77,7 @@ export function generateForecast(history = [], netFootprint = 0, recommendations
   const reductionSavings = Math.round(forecastData[5].baseline - forecastData[5].bestCase);
 
   // 6. Goal Achievement Probability (Target: 2,000 kg CO2e/yr limit)
-  let probability = 50;
+  let probability;
   const diffToTarget = netFootprint - 2000;
 
   if (diffToTarget <= 0) {

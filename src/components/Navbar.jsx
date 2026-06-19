@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Menu, X, BarChart3, Globe, ScanLine, Brain, Activity } from 'lucide-react';
+import { X, BarChart3, Globe, ScanLine, Brain, Activity } from 'lucide-react';
 
 export default function Navbar({ isOpen, setIsOpen }) {
   const [scrolled, setScrolled] = useState(false);

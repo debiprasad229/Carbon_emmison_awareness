@@ -232,7 +232,7 @@ export default function App() {
   const forecast = useMemo(() => {
     if (!inputs) return null;
     return generateForecast(history, netFootprint, recommendations, completedHabits, offsets);
-  }, [history, netFootprint, recommendations, completedHabits, offsets]);
+  }, [inputs, history, netFootprint, recommendations, completedHabits, offsets]);
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

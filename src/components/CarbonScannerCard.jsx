@@ -162,7 +162,7 @@ export default function CarbonScannerCard({ id, inputs, onUpdateInputs }) {
     if (!inputs) return;
 
     let updatedInputs = { ...inputs };
-    let summaryMessage = '';
+    let summaryMessage;
 
     if (documentType === 'electricity_bill') {
       updatedInputs.electricityKwh = Math.round(extractedValue);
@@ -301,9 +301,31 @@ export default function CarbonScannerCard({ id, inputs, onUpdateInputs }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Parsed Category</span>
-                <h4 style={{ fontSize: '0.95rem', textTransform: 'capitalize', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {documentType.replace('_', ' ')}
-                </h4>
+                {isEditing ? (
+                  <select
+                    value={documentType}
+                    onChange={handleTypeChange}
+                    style={{
+                      padding: '4px 8px',
+                      background: 'rgba(0,0,0,0.3)',
+                      border: '1px solid var(--accent-blue)',
+                      borderRadius: '4px',
+                      color: 'var(--text-primary)',
+                      fontSize: '0.8rem',
+                      display: 'block',
+                      marginTop: '4px',
+                      textTransform: 'capitalize'
+                    }}
+                  >
+                    <option value="electricity_bill">Electricity Bill</option>
+                    <option value="fuel_receipt">Fuel Receipt</option>
+                    <option value="shopping_receipt">Shopping Receipt</option>
+                  </select>
+                ) : (
+                  <h4 style={{ fontSize: '0.95rem', textTransform: 'capitalize', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '6px', margin: '4px 0 0 0' }}>
+                    {documentType.replace('_', ' ')}
+                  </h4>
+                )}
               </div>
               <div style={{ textAlign: 'right' }}>
                 <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Confidence</span>
