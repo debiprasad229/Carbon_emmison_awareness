@@ -18,6 +18,14 @@ import { calculatePersonality } from './utils/personalityEngine';
 import { generateForecast } from './utils/forecastEngine';
 import Navbar from './components/Navbar';
 
+const HABIT_SAVINGS_MAP = {
+  commute_green: 520,
+  eat_vegan_veg: 600,
+  unplug_unused: 120,
+  air_dry_laundry: 220,
+  cold_shower: 180
+};
+
 const STORAGE_KEY_INPUTS = 'ecopulse_inputs';
 const STORAGE_KEY_XP = 'ecopulse_xp';
 const STORAGE_KEY_HABITS = 'ecopulse_habits';
@@ -69,13 +77,27 @@ export default function App() {
   });
 
   const [showWizard, setShowWizard] = useState(false);
-  const [habitSavings, setHabitSavings] = useState(0);
+  const [habitSavings, setHabitSavings] = useState(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY_HABITS);
+      const habits = stored ? JSON.parse(stored) : {};
+      return Object.entries(habits).reduce((total, [habitId, count]) => {
+        const saving = HABIT_SAVINGS_MAP[habitId] || 0;
+        return total + (saving * count);
+      }, 0);
+    } catch {
+      return 0;
+    }
+  });
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
-  const [offsets, setOffsets] = useState({
-    treesPlanted: 0,
-    cleanEnergyFund: 0,
-    plasticRemoved: 0
+  const [offsets, setOffsets] = useState(() => {
+    try {
+      const stored = localStorage.getItem('ecopulse_offsets');
+      return stored ? JSON.parse(stored) : { treesPlanted: 0, cleanEnergyFund: 0, plasticRemoved: 0 };
+    } catch {
+      return { treesPlanted: 0, cleanEnergyFund: 0, plasticRemoved: 0 };
+    }
   });
 
   const [highContrast, setHighContrast] = useState(() => {
@@ -134,6 +156,14 @@ export default function App() {
     }
     document.body.classList.toggle('reduced-motion', reducedMotion);
   }, [reducedMotion]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('ecopulse_offsets', JSON.stringify(offsets));
+    } catch (e) {
+      console.error("Failed to save offsets:", e);
+    }
+  }, [offsets]);
 
   // Safe saving to localStorage when state updates
   const saveInputs = (newInputs) => {

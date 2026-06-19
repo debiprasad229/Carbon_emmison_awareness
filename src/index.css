@@ -2580,3 +2580,26 @@ html {
     }
   }
 }
+
+/* Onboarding Wizard Unified Styles */
+.wizard-number-input {
+  width: 100%;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
+  transition: var(--transition-smooth);
+  font-family: inherit;
+}
+
+.wizard-number-input:focus {
+  outline: none;
+  border-color: var(--accent-green);
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.1);
+}
+
+.wizard-number-input.error {
+  border-color: var(--danger);
+}
+

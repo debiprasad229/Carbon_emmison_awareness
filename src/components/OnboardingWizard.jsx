@@ -154,8 +154,7 @@ export default function OnboardingWizard({ onComplete }) {
                   id="commuteDistance"
                   type="number"
                   name="commuteDistance"
-                  className="select-chip"
-                  style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.01)', border: errors.commuteDistance ? '1px solid var(--danger)' : '1px solid var(--card-border)' }}
+                  className={`wizard-number-input ${errors.commuteDistance ? 'error' : ''}`}
                   min="0"
                   max="2000"
                   value={inputs.commuteDistance}
@@ -210,8 +209,7 @@ export default function OnboardingWizard({ onComplete }) {
                   id="flightHours"
                   type="number"
                   name="flightHours"
-                  className="select-chip"
-                  style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.01)', border: errors.flightHours ? '1px solid var(--danger)' : '1px solid var(--card-border)' }}
+                  className={`wizard-number-input ${errors.flightHours ? 'error' : ''}`}
                   min="0"
                   max="1000"
                   value={inputs.flightHours}
@@ -245,12 +243,12 @@ export default function OnboardingWizard({ onComplete }) {
                   id="electricityKwh"
                   type="number"
                   name="electricityKwh"
-                  className="select-chip"
-                  style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.01)', border: errors.electricityKwh ? '1px solid var(--danger)' : '1px solid var(--card-border)' }}
+                  className={`wizard-number-input ${errors.electricityKwh ? 'error' : ''}`}
                   min="0"
                   max="10000"
                   value={inputs.electricityKwh}
                   onChange={handleNumberChange}
+                  aria-invalid={errors.electricityKwh ? "true" : "false"}
                 />
                 {errors.electricityKwh && (
                   <p style={{ color: 'var(--danger)', fontSize: '0.75rem', marginTop: '4px' }}>{errors.electricityKwh}</p>
