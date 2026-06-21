@@ -9,29 +9,72 @@ export default function EcoPulseAI({
   footprintBreakdown, 
   netFootprint, 
   xp, 
-  completedHabits 
+  completedHabits,
+  addNotification,
+  chatHistory,
+  setChatHistory,
+  token
 }) {
-  // 1. Chat Messages State
-  const [messages, setMessages] = useState(() => {
+  // Local state as fallback if parent didn't pass chatHistory/setChatHistory (e.g. in tests)
+  const [localMessages, setLocalMessages] = useState(() => {
     try {
       const stored = localStorage.getItem('ecopulse_ai_messages');
       if (stored) return JSON.parse(stored);
     } catch (e) {
       console.error("Failed to load message history:", e);
     }
-    
-    // Default initial greeting if no history exists
-    return [
-      {
-        id: 'initial-greeting',
-        sender: 'ai',
-        text: `Hello! I am your EcoPulse AI Carbon Coach. I've analyzed your dashboard profile and see that your annual net footprint is currently **${(netFootprint || 0).toLocaleString()} kg CO₂e**. 
+    return [];
+  });
+
+  const defaultGreeting = [
+    {
+      id: 'initial-greeting',
+      sender: 'ai',
+      text: `Hello! I am your EcoPulse AI Carbon Coach. I've analyzed your dashboard profile and see that your annual net footprint is currently **${(netFootprint || 0).toLocaleString()} kg CO₂e**. 
 
 How can I help you today? You can ask me questions about your environmental footprint, request a tailored carbon reduction plan, or select one of the quick suggestions below!`,
-        timestamp: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+      timestamp: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    }
+  ];
+
+  const isControlled = chatHistory !== undefined && setChatHistory !== undefined;
+  
+  const messages = isControlled
+    ? (chatHistory && chatHistory.length > 0 ? chatHistory : defaultGreeting)
+    : (localMessages.length > 0 ? localMessages : defaultGreeting);
+
+  const setMessages = (update) => {
+    if (isControlled) {
+      if (typeof update === 'function') {
+        setChatHistory(prev => {
+          const current = prev.length > 0 ? prev : defaultGreeting;
+          return update(current);
+        });
+      } else {
+        setChatHistory(update);
       }
-    ];
-  });
+    } else {
+      if (typeof update === 'function') {
+        setLocalMessages(prev => {
+          const current = prev.length > 0 ? prev : defaultGreeting;
+          const next = update(current);
+          try {
+            localStorage.setItem('ecopulse_ai_messages', JSON.stringify(next));
+          } catch (e) {
+            console.error(e);
+          }
+          return next;
+        });
+      } else {
+        setLocalMessages(update);
+        try {
+          localStorage.setItem('ecopulse_ai_messages', JSON.stringify(update));
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+  };
 
   const [inputMessage, setInputMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -53,15 +96,6 @@ How can I help you today? You can ask me questions about your environmental foot
     prevMessagesLength.current = messages.length;
     prevLoading.current = loading;
   }, [messages, loading]);
-
-  // Persist messages in localStorage
-  useEffect(() => {
-    try {
-      localStorage.setItem('ecopulse_ai_messages', JSON.stringify(messages));
-    } catch (e) {
-      console.error("Failed to save message history:", e);
-    }
-  }, [messages]);
 
   // Handle clearing chat history
   const handleClearHistory = () => {
@@ -248,6 +282,7 @@ Instructions:
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         },
         body: JSON.stringify({
           contents,
@@ -278,6 +313,10 @@ Instructions:
           timestamp: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
         }
       ]);
+
+      if (addNotification) {
+        addNotification('AI Recommendations', 'AI Coach Recommendation', 'AI coach generated a new recommendation.');
+      }
     } catch (err) {
       console.error("Gemini API Error:", err);
       setError(err.message || "Failed to connect to the Gemini API service. Please try again.");
@@ -297,7 +336,7 @@ Instructions:
   };
 
   return (
-    <div id={id} className="bento-card col-12" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div id={id} className="bento-card col-8" style={{ display: 'flex', flexDirection: 'column' }}>
       
       {/* Card Header */}
       <div className="card-header" style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: '16px', marginBottom: '20px' }}>

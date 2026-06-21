@@ -2,7 +2,7 @@ import { Lightbulb, Info } from 'lucide-react';
 
 export default function RecommendationsCard({ recommendations = [], onOpenCalculator }) {
   return (
-    <div className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+    <div className="bento-card col-4" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
       <div>
         <div className="card-header" style={{ marginBottom: '15px' }}>
           <div className="card-title-group">

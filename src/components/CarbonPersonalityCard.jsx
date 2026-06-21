@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Award, Compass, Zap, Leaf, AlertCircle, CheckCircle2, XCircle, Sparkles, Trophy } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import { calculateOffsets } from '../utils/carbonCalculations';
 
 const ICON_MAP = {
   warrior: Award,
@@ -12,7 +13,11 @@ const ICON_MAP = {
 
 export default function CarbonPersonalityCard({ 
   personality, 
-  setXp 
+  xp,
+  setXp,
+  addNotification,
+  netFootprint = 3400,
+  offsets = { treesPlanted: 0, cleanEnergyFund: 0, plasticRemoved: 0 }
 }) {
   const [challengeClaimed, setChallengeClaimed] = useState(() => {
     try {
@@ -24,6 +29,22 @@ export default function CarbonPersonalityCard({
   });
 
   if (!personality) return null;
+
+  const totalOffset = calculateOffsets(offsets);
+  const grossFootprint = netFootprint + totalOffset;
+  const neutralityProgress = grossFootprint > 0 
+    ? Math.round((totalOffset / grossFootprint) * 100) 
+    : 0;
+
+  const getGradeInfo = (footprint) => {
+    if (footprint <= 2000) return { grade: 'A', color: 'linear-gradient(135deg, #10b981, #059669)', border: 'rgba(16, 185, 129, 0.2)' };
+    if (footprint <= 3000) return { grade: 'B', color: 'linear-gradient(135deg, #3b82f6, #2563eb)', border: 'rgba(59, 130, 246, 0.2)' };
+    if (footprint <= 4500) return { grade: 'C', color: 'linear-gradient(135deg, #06b6d4, #0891b2)', border: 'rgba(6, 182, 212, 0.2)' };
+    if (footprint <= 6500) return { grade: 'D', color: 'linear-gradient(135deg, #f59e0b, #d97706)', border: 'rgba(245, 158, 11, 0.2)' };
+    return { grade: 'F', color: 'linear-gradient(135deg, #ef4444, #dc2626)', border: 'rgba(239, 68, 68, 0.2)' };
+  };
+
+  const gradeInfo = getGradeInfo(netFootprint);
 
   const BadgeIcon = ICON_MAP[personality.key] || Leaf;
 
@@ -51,6 +72,11 @@ export default function CarbonPersonalityCard({
       setChallengeClaimed(true);
     } catch (e) {
       console.error("Failed to save challenge status:", e);
+    }
+
+    // Trigger notification
+    if (addNotification) {
+      addNotification('Achievements', 'Personality Challenge Completed', `${personality.challenge.text} completed (+${reward} XP)`);
     }
   };
 
@@ -160,40 +186,76 @@ export default function CarbonPersonalityCard({
               </ul>
             </div>
 
-          </div>
-
-          {/* Improvement Opportunities */}
-          <div className="personality-detail-block" style={{ marginTop: '14px' }}>
-            <div className="detail-block-header blue">
-              <Sparkles size={15} />
-              <span>Improvement Opportunities</span>
+            {/* Improvement Opportunities */}
+            <div className="personality-detail-block">
+              <div className="detail-block-header blue">
+                <Sparkles size={15} />
+                <span>Improvement Opportunities</span>
+              </div>
+              <ul className="detail-list opportunity-list">
+                {personality.opportunities.map((opp, i) => (
+                  <li key={`opp-${i}`}>{opp}</li>
+                ))}
+              </ul>
             </div>
-            <ul className="detail-list opportunity-list">
-              {personality.opportunities.map((opp, i) => (
-                <li key={`opp-${i}`}>{opp}</li>
-              ))}
-            </ul>
-          </div>
 
-          {/* Evolve Challenge (XP Integration) */}
-          <div className="evolve-challenge-card">
-            <div className="challenge-header">
-              <span className="challenge-tag">PERSONALITY CHALLENGE</span>
-              <span className="challenge-xp">+{personality.challenge.xpReward} XP</span>
+            {/* Evolve Challenge (XP Integration) */}
+            <div className="evolve-challenge-card" style={{ marginTop: 0 }}>
+              <div className="challenge-header">
+                <span className="challenge-tag">PERSONALITY CHALLENGE</span>
+                <span className="challenge-xp">+{personality.challenge.xpReward} XP</span>
+              </div>
+              <p className="challenge-text">{personality.challenge.text}</p>
+              <button 
+                type="button" 
+                className={`challenge-btn ${challengeClaimed ? 'claimed' : ''}`}
+                onClick={handleClaimChallenge}
+                disabled={challengeClaimed}
+              >
+                {challengeClaimed ? '✓ Challenge Completed' : 'Complete Challenge'}
+              </button>
             </div>
-            <p className="challenge-text">{personality.challenge.text}</p>
-            <button 
-              type="button" 
-              className={`challenge-btn ${challengeClaimed ? 'claimed' : ''}`}
-              onClick={handleClaimChallenge}
-              disabled={challengeClaimed}
-            >
-              {challengeClaimed ? '✓ Challenge Completed' : 'Complete Challenge'}
-            </button>
+
           </div>
 
         </div>
 
+      </div>
+
+      {/* Horizontal Divider */}
+      <div style={{ borderTop: '1px solid var(--card-border)', margin: '20px 0 15px 0' }} />
+
+      {/* Sustainability Grade Footer */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h4 style={{ fontSize: '0.9rem', fontWeight: '800', color: 'var(--text-primary)', margin: '0 0 4px 0' }}>Sustainability Grade</h4>
+          <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', margin: 0 }}>
+            Your target is to reduce emissions under 2,000 kg/yr to align with global warming targets.
+          </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: '0.62rem', fontWeight: '850', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Neutrality Progress</div>
+            <div style={{ fontSize: '1.1rem', fontWeight: '850', color: 'var(--text-primary)' }}>{neutralityProgress}% Reduced</div>
+          </div>
+          <div 
+            style={{ 
+              width: '46px', 
+              height: '46px', 
+              background: gradeInfo.color, 
+              borderRadius: '10px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              fontSize: '1.6rem', 
+              fontWeight: '850', 
+              color: '#060f1e', 
+              boxShadow: `0 0 12px ${gradeInfo.border}`
+            }}
+          >
+            {gradeInfo.grade}
+          </div>
+        </div>
       </div>
 
     </div>

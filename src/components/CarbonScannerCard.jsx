@@ -3,7 +3,7 @@ import { UploadCloud, FileText, Check, AlertCircle, Edit3, Trash2, Sparkles, Loa
 import { parseDocumentLocally, parseDocumentWithGemini } from '../utils/scannerEngine';
 import { EMISSION_FACTORS } from '../utils/carbonCalculations';
 
-export default function CarbonScannerCard({ id, inputs, onUpdateInputs }) {
+export default function CarbonScannerCard({ id, inputs, onUpdateInputs, token }) {
   const [file, setFile] = useState(null); // { name, size, type, dataUrl }
   const [status, setStatus] = useState('idle'); // 'idle' | 'scanning' | 'success' | 'error'
   const [confidence, setConfidence] = useState(0);
@@ -87,7 +87,7 @@ export default function CarbonScannerCard({ id, inputs, onUpdateInputs }) {
         let result;
         if (isImage && geminiKey) {
           // Use multimodal vision parser
-          result = await parseDocumentWithGemini(dataUrl, selectedFile.type);
+          result = await parseDocumentWithGemini(dataUrl, selectedFile.type, token);
         } else {
           // Local fallback / text parser simulation
           // If it's a text-based file, read content. Otherwise mock scan from filename.
@@ -193,7 +193,7 @@ export default function CarbonScannerCard({ id, inputs, onUpdateInputs }) {
   };
 
   return (
-    <div id={id} className="bento-card col-12" style={{ display: 'flex', flexDirection: 'column' }}>
+    <div id={id} className="bento-card col-6" style={{ display: 'flex', flexDirection: 'column' }}>
       {/* Card Header */}
       <div className="card-header" style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: '16px', marginBottom: '20px' }}>
         <div className="card-title-group">

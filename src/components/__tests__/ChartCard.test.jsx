@@ -62,4 +62,65 @@ describe('ChartCard', () => {
     render(<ChartCard categories={mockCategories} />);
     expect(screen.getByText(/Hover over the donut segments/i)).toBeInTheDocument();
   });
+
+  it('triggers hover and keyboard focus on donut segments', () => {
+    render(<ChartCard categories={mockCategories} />);
+    const transportSegment = screen.getByLabelText(/Category Transport/);
+    
+    // Mouse enter
+    fireEvent.mouseEnter(transportSegment);
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+
+    // Mouse leave
+    fireEvent.mouseLeave(transportSegment);
+    expect(screen.getByText('Total (100%)')).toBeInTheDocument();
+
+    // Keydown Enter on segment
+    fireEvent.keyDown(transportSegment, { key: 'Enter' });
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+
+    // Keydown Space on segment
+    fireEvent.keyDown(transportSegment, { key: ' ' });
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+
+    // Focus segment
+    fireEvent.focus(transportSegment);
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+
+    // Blur segment
+    fireEvent.blur(transportSegment);
+    expect(screen.getByText('Total (100%)')).toBeInTheDocument();
+
+    // Keydown ArrowDown on segment (should do nothing)
+    fireEvent.keyDown(transportSegment, { key: 'ArrowDown' });
+    expect(screen.getByText('Total (100%)')).toBeInTheDocument();
+  });
+
+  it('triggers keyboard interaction on legend items', () => {
+    render(<ChartCard categories={mockCategories} />);
+    const legendItem = screen.getByLabelText('Highlight Transport emissions');
+
+    // Mouse enter / leave legend
+    fireEvent.mouseEnter(legendItem);
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+    fireEvent.mouseLeave(legendItem);
+    expect(screen.getByText('Total (100%)')).toBeInTheDocument();
+
+    // Focus / blur legend
+    fireEvent.focus(legendItem);
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+    fireEvent.blur(legendItem);
+    expect(screen.getByText('Total (100%)')).toBeInTheDocument();
+
+    // Keydown Space on legend
+    fireEvent.keyDown(legendItem, { key: ' ' });
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+
+    // Keydown Enter on legend
+    fireEvent.keyDown(legendItem, { key: 'Enter' });
+    expect(screen.getByText('Transport (43%)')).toBeInTheDocument();
+
+    // Keydown ArrowDown on legend (should do nothing)
+    fireEvent.keyDown(legendItem, { key: 'ArrowDown' });
+  });
 });

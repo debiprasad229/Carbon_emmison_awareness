@@ -1,11 +1,50 @@
-/**
- * Integration Tests for App.jsx
- * Tests: rendering states, localStorage persistence, navigation, accessibility widget
- */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
+
+beforeEach(() => {
+  localStorage.setItem('ecopulse_token', 'mock-jwt-token');
+  localStorage.setItem('ecopulse_user', JSON.stringify({ email: 'test@ecopulse.org' }));
+
+  // Intercept fetch calls to mock DB profile responses
+  vi.spyOn(global, 'fetch').mockImplementation((url) => {
+    if (url.includes('/api/user/profile')) {
+      const inputs = localStorage.getItem('ecopulse_inputs') ? JSON.parse(localStorage.getItem('ecopulse_inputs')) : null;
+      const xp = localStorage.getItem('ecopulse_xp') ? parseInt(localStorage.getItem('ecopulse_xp')) : 0;
+      const completedHabits = localStorage.getItem('ecopulse_habits') ? JSON.parse(localStorage.getItem('ecopulse_habits')) : {};
+      const history = localStorage.getItem('ecopulse_history') ? JSON.parse(localStorage.getItem('ecopulse_history')) : [];
+      const offsets = localStorage.getItem('ecopulse_offsets') ? JSON.parse(localStorage.getItem('ecopulse_offsets')) : { treesPlanted: 0, cleanEnergyFund: 0, plasticRemoved: 0 };
+
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({
+          inputs,
+          xp,
+          completedHabits,
+          challengeStats: { streak: 0, completedTotal: 0, lastCompletedDate: null },
+          offsets,
+          history,
+          notifications: [],
+          chatHistory: [],
+          settings: { highContrast: false, fontSize: 'normal', reducedMotion: false }
+        })
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({})
+    });
+  });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.restoreAllMocks();
+  localStorage.clear();
+});
 
 // Mock EcoPulseAI to avoid Gemini API complexity in integration tests
 vi.mock('../components/EcoPulseAI', () => ({
@@ -98,14 +137,32 @@ describe('App — Dashboard State (localStorage hydration)', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
-  it('renders all dashboard cards', () => {
+  it('renders dashboard cards by default on dashboard route', () => {
     render(<App />);
+    expect(screen.getByText('Control Dashboard')).toBeInTheDocument();
     expect(screen.getByText('Carbon Scoreboard')).toBeInTheDocument();
-    expect(screen.getByText('Emission Breakdown')).toBeInTheDocument();
-    expect(screen.getByText('Daily Green Actions')).toBeInTheDocument();
-    expect(screen.getByText('Carbon Offset Simulator')).toBeInTheDocument();
-    expect(screen.getByText('Personalized Reduction Plan')).toBeInTheDocument();
     expect(screen.getByText('Smart Carbon Scanner')).toBeInTheDocument();
+    expect(screen.getByText('Recent Activity Logs')).toBeInTheDocument();
+  });
+
+  it('allows navigation to other SaaS routes on hashchange', async () => {
+    render(<App />);
+    
+    // Simulate navigation to analytics
+    window.location.hash = '#analytics';
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    
+    // findByText automatically waits for the 350ms simulated telemetry loader delay
+    expect(await screen.findByText('Emission Analytics')).toBeInTheDocument();
+    expect(screen.getByText('Emission Breakdown')).toBeInTheDocument();
+    expect(screen.getByText('Carbon Offset Simulator')).toBeInTheDocument();
+
+    // Simulate navigation to challenges
+    window.location.hash = '#challenges';
+    fireEvent(window, new HashChangeEvent('hashchange'));
+    
+    expect(await screen.findByText('Sustainability Goals')).toBeInTheDocument();
+    expect(screen.getByText('Daily Green Actions')).toBeInTheDocument();
   });
 
   it('shows Recalculate button on dashboard', () => {
@@ -113,9 +170,9 @@ describe('App — Dashboard State (localStorage hydration)', () => {
     expect(screen.getByLabelText('Recalculate baseline footprint')).toBeInTheDocument();
   });
 
-  it('shows Overview button on dashboard', () => {
+  it('shows Dashboard link on navbar', () => {
     render(<App />);
-    expect(screen.getAllByText('Overview')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Dashboard')[0]).toBeInTheDocument();
   });
 
   it('calls window.scrollTo(0,0) when inputs load', () => {
@@ -180,5 +237,20 @@ describe('App — State Persistence', () => {
     localStorage.setItem('ecopulse_reduced_motion', 'true');
     render(<App />);
     expect(document.body.classList.contains('reduced-motion')).toBe(true);
+  });
+
+  it('toggles mobile menu and triggers recalculate flow', async () => {
+    const user = userEvent.setup();
+    localStorage.setItem('ecopulse_inputs', JSON.stringify(SAMPLE_INPUTS));
+    render(<App />);
+    
+    // Toggle mobile menu
+    const menuBtn = screen.getByLabelText('Toggle Navigation');
+    await user.click(menuBtn);
+    
+    // Trigger recalculate
+    const recalcBtn = screen.getByLabelText('Recalculate baseline footprint');
+    await user.click(recalcBtn);
+    expect(screen.getByText('Welcome to EcoPulse')).toBeInTheDocument();
   });
 });

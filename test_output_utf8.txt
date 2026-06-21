@@ -1,0 +1,31 @@
+﻿
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.9 [39m[90mC:/Users/gamer/Desktop/Program_Files/Projects/virtual promptwars c-3[39m
+
+ [31mΓ¥»[39m src/__tests__/App.test.jsx [2m([22m[2m21 tests[22m[2m | [22m[31m2 failed[39m[2m)[22m[33m 4228[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m renders the welcome screen when no localStorage inputs exist [33m 354[2mms[22m[39m
+     [32mΓ£ô[39m renders the brand name "EcoPulse"[32m 51[2mms[22m[39m
+     [32mΓ£ô[39m displays "Get Started" button on welcome screen[32m 40[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m opens onboarding wizard when "Get Started" is clicked [33m 308[2mms[22m[39m
+     [32mΓ£ô[39m shows feature highlights on welcome page[32m 40[2mms[22m[39m
+     [32mΓ£ô[39m always renders the accessibility settings widget[32m 35[2mms[22m[39m
+     [32mΓ£ô[39m renders the footer with copyright[32m 46[2mms[22m[39m
+     [32mΓ£ô[39m renders dashboard when localStorage inputs exist[32m 181[2mms[22m[39m
+     [32mΓ£ô[39m hydrates XP from localStorage[32m 85[2mms[22m[39m
+     [32mΓ£ô[39m shows user level in header[32m 80[2mms[22m[39m
+[31m     [31m├ù[31m renders dashboard cards by default on dashboard route[39m[32m 107[2mms[22m[39m
+[31m     [31m├ù[31m allows navigation to other SaaS routes on hashchange[39m[33m 1122[2mms[22m[39m
+     [32mΓ£ô[39m shows Recalculate button on dashboard[32m 112[2mms[22m[39m
+     [32mΓ£ô[39m shows Dashboard link on navbar[32m 120[2mms[22m[39m
+     [32mΓ£ô[39m calls window.scrollTo(0,0) when inputs load[32m 173[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m saves inputs to localStorage after wizard completion [33m 490[2mms[22m[39m
+     [33m[2mΓ£ô[22m[39m saves history entry after wizard completion [33m 486[2mms[22m[39m
+     [32mΓ£ô[39m persists accessibility high contrast preference[32m 33[2mms[22m[39m
+     [32mΓ£ô[39m persists accessibility font size preference[32m 34[2mms[22m[39m
+     [32mΓ£ô[39m persists reduced motion preference[32m 40[2mms[22m[39m
+     [32mΓ£ô[39m toggles mobile menu and triggers recalculate flow[32m 281[2mms[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m2 failed[39m[22m[2m | [22m[1m[32m19 passed[39m[22m[90m (21)[39m
+[2m   Start at [22m 19:52:01
+[2m   Duration [22m 10.70s[2m (transform 759ms, setup 414ms, import 2.07s, tests 4.23s, environment 3.46s)[22m
+

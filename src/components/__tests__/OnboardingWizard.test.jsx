@@ -2,7 +2,7 @@
  * Component Tests for OnboardingWizard
  */
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen, within, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import OnboardingWizard from '../OnboardingWizard';
 
@@ -142,5 +142,91 @@ describe('OnboardingWizard', () => {
     const initialWidth = progressFill.style.width;
     await user.click(screen.getByText(/Continue/i));
     expect(progressFill.style.width).not.toBe(initialWidth);
+  });
+
+  it('shows validation errors on flights and energy steps', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingWizard onComplete={mockOnComplete} />);
+
+    // Step 1 -> 2
+    await user.click(screen.getByText(/Continue/i));
+    expect(screen.getByText('Step 2 of 4')).toBeInTheDocument();
+
+    // Clear flights input and try to continue
+    const flightInput = screen.getByLabelText(/Annual Flight Duration/);
+    await user.clear(flightInput);
+    await user.click(screen.getByText(/Continue/i));
+    expect(screen.getByText(/Please enter your annual flight hours/i)).toBeInTheDocument();
+
+    // Fill flights and continue to Step 3
+    await user.type(flightInput, '10');
+    await user.click(screen.getByText(/Continue/i));
+    expect(screen.getByText('Step 3 of 4')).toBeInTheDocument();
+
+    // Clear electricity input and try to continue
+    const electricityInput = screen.getByLabelText(/Monthly Electricity Usage/);
+    await user.clear(electricityInput);
+    await user.click(screen.getByText(/Continue/i));
+    expect(screen.getByText(/Please enter your monthly electricity usage/i)).toBeInTheDocument();
+  });
+
+  it('handles custom choices across all steps and submits correct values', async () => {
+    const user = userEvent.setup();
+    render(<OnboardingWizard onComplete={mockOnComplete} />);
+
+    // Step 1: Select "Hybrid EV" and commute distance
+    const hybridRadio = screen.getByRole('radio', { name: /Hybrid Car/i });
+    await user.click(hybridRadio);
+    const commuteInput = screen.getByLabelText(/Weekly Commute Distance/);
+    await user.clear(commuteInput);
+    await user.type(commuteInput, '120');
+    await user.click(screen.getByText(/Continue/i));
+
+    // Step 2: Set flights to 15 hours
+    const flightInput = screen.getByLabelText(/Annual Flight Duration/);
+    await user.clear(flightInput);
+    await user.type(flightInput, '15');
+    await user.click(screen.getByText(/Continue/i));
+
+    // Step 3: Set electricity, green energy, and heating source
+    const electricityInput = screen.getByLabelText(/Monthly Electricity Usage/);
+    await user.clear(electricityInput);
+    await user.type(electricityInput, '320');
+
+    // Change slider value
+    const greenEnergySlider = screen.getByLabelText(/Green Renewable Share/i);
+    fireEvent.change(greenEnergySlider, { target: { value: '45' } });
+
+    // Select natural gas heating
+    const heatPumpRadio = screen.getByRole('radio', { name: /Heat Pump/i });
+    await user.click(heatPumpRadio);
+    await user.click(screen.getByText(/Continue/i));
+
+    // Step 4: Choose vegetarian, minimalist, and check recycles
+    const vegRadio = screen.getByRole('radio', { name: /Vegetarian/i });
+    await user.click(vegRadio);
+    const minRadio = screen.getByRole('radio', { name: /Minimalist/i });
+    await user.click(minRadio);
+
+    const recyclesCheck = screen.getByLabelText(/I actively sort and recycle/i);
+    if (!recyclesCheck.checked) {
+      await user.click(recyclesCheck);
+    }
+
+    // Submit form
+    await user.click(screen.getByRole('button', { name: /Calculate/i }));
+
+    expect(mockOnComplete).toHaveBeenCalledTimes(1);
+    expect(mockOnComplete).toHaveBeenCalledWith({
+      commuteDistance: 120,
+      transportType: 'hybrid',
+      flightHours: 15,
+      electricityKwh: 320,
+      greenEnergyShare: 45,
+      heatingSource: 'heatpump',
+      dietType: 'vegetarian',
+      shoppingHabit: 'minimalist',
+      recycles: true
+    });
   });
 });

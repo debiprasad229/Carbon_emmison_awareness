@@ -8,7 +8,8 @@ export default function ChallengeTrackerCard({
   completedHabits = {}, 
   offsets = {}, 
   challengeStats, 
-  setChallengeStats 
+  setChallengeStats,
+  addNotification
 }) {
   const [challenges, setChallenges] = useState(() => {
     try {
@@ -93,6 +94,14 @@ export default function ChallengeTrackerCard({
       return ch;
     });
     saveChallengesList(updated);
+
+    // 5. Trigger notification
+    if (addNotification) {
+      const challenge = challenges.find(ch => ch.id === id);
+      const challengeTitle = challenge ? challenge.title : 'Challenge';
+      const typeLabel = type === 'daily' ? 'Daily' : (type === 'weekly' ? 'Weekly' : 'Monthly');
+      addNotification('Challenges', `${typeLabel} Challenge Completed`, `${challengeTitle} completed (+${rewardXp} XP)`);
+    }
   };
 
   // Reset challenges for testing
@@ -224,6 +233,17 @@ export default function ChallengeTrackerCard({
   );
 }
 
+const formatUnit = (unit, goal) => {
+  if (!unit) return '';
+  if (unit === 'times' || unit === 'logs') {
+    return goal === 1 ? unit.slice(0, -1) : unit;
+  }
+  if (unit === 'km' || unit === 'kg') {
+    return unit;
+  }
+  return goal === 1 ? unit : `${unit}s`;
+};
+
 // Challenge Row subcomponent
 function ChallengeItem({ challenge, onIncrement, onClaim, isSynced = false }) {
   const isComplete = challenge.progress >= challenge.goal;
@@ -250,7 +270,7 @@ function ChallengeItem({ challenge, onIncrement, onClaim, isSynced = false }) {
           />
         </div>
         <div className="challenge-progress-numbers">
-          <span>{challenge.progress} / {challenge.goal} {challenge.unit}s</span>
+          <span>{challenge.progress} / {challenge.goal} {formatUnit(challenge.unit, challenge.goal)}</span>
           <span>{progressPercent}%</span>
         </div>
       </div>

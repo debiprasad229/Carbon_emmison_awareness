@@ -8,11 +8,12 @@ In the fight against climate change, awareness is the first step. However, calcu
 
 ## ✨ Features
 * **Smart Carbon Scanner**: Upload electricity bills, fuel receipts, or shopping invoices via drag-and-drop. The Gemini Multimodal API extracts text and calculates your carbon footprint automatically, with a local regex-based fallback for text-only files.
+* **Complete User Authentication**: Secure Register, Login, Forgot Password, and Reset Password flows with bcryptjs password hashing and JWT sessions.
+* **Persistent Progress Tracking**: Real-time state hydration with MongoDB to persist carbon history, streaks, logged habits, and AI chat logs across devices.
 * **Interactive Dashboard**: View real-time carbon metrics across multiple bento-grid cards.
-* **EcoPulse AI Chat**: An in-app AI assistant powered by Gemini for personalized eco-advice.
+* **EcoPulse AI Chat**: An in-app AI assistant powered by Gemini for personalized eco-advice with chat history persistence.
 * **Carbon Forecast**: Predictive charts showing your projected emissions trajectory.
 * **Smart Recommendations**: Actionable, AI-generated insights tailored to your footprint profile.
-* **History & Tracking**: Robust history-tracking to monitor progress over time with persistent state.
 * **Habit Tracker & Gamification**: Earn XP, build streaks, and unlock levels by completing daily green habits.
 * **Challenge Tracker**: Take on carbon-reduction challenges and track completion.
 * **Carbon Offset Simulator**: Simulate the impact of green project contributions (tree planting, clean energy, plastic cleanup).
@@ -34,10 +35,11 @@ In the fight against climate change, awareness is the first step. However, calcu
 
 ## 🏗️ Architecture
 ```mermaid
-graph LR
-    A["Frontend: React 19 / Vite"] -->|HTTP Proxy| B["Backend: Node.js / Express"]
+graph TD
+    A["Frontend: React 19 / Vite"] -->|HTTP Proxy + JWT Auth| B["Backend: Node.js / Express"]
     B -->|Server-side API calls| C["Gemini 2.5 Flash API"]
-    B --> D["Static Files: dist/"]
+    B -->|Mongoose connection| D["Database: MongoDB Atlas"]
+    B --> E["Static Files: dist/"]
 
     subgraph "Client (Browser)"
       A
@@ -45,18 +47,23 @@ graph LR
 
     subgraph "Server (Google Cloud Run)"
       B
-      D
+      E
     end
 
     subgraph "Google AI"
       C
     end
+
+    subgraph "Cloud Database"
+      D
+    end
 ```
 
-The Express server acts as a **secure proxy**:
-- The Gemini API key is **never exposed to the client**.
-- All AI requests (`/api/chat`, `/api/scan`) are rate-limited and proxied through the server.
-- The server also serves the production-built React SPA from the `dist/` directory.
+The Express server acts as a **secure backend proxy and API gateway**:
+- **Authentication**: Validates JWTs for protected endpoints such as `/api/profile/*` and `/api/chat/*`.
+- **Database Access**: Securely connects to MongoDB Atlas using Mongoose to persist user credentials, settings, habits, history, and chat logs.
+- **API Key Protection**: The Gemini API key and MongoDB connection credentials are **never exposed to the client**.
+- **Static Hosting**: Serves the production-built React SPA from the `dist/` directory.
 
 ## 💻 Tech Stack
 
@@ -64,6 +71,8 @@ The Express server acts as a **secure proxy**:
 |---|---|
 | **Frontend** | React 19, Vite 8 |
 | **Backend** | Node.js, Express 5 |
+| **Database** | MongoDB Atlas, Mongoose 8 |
+| **Authentication** | JSON Web Tokens (JWT), bcryptjs |
 | **Styling** | Vanilla CSS (Glassmorphism, Dark Mode) |
 | **Icons** | Lucide React |
 | **AI** | Google Gemini 2.5 Flash (Multimodal API) |
@@ -78,12 +87,12 @@ The Express server acts as a **secure proxy**:
 
 ### Prerequisites
 - Node.js 20+
+- A MongoDB cluster (local or MongoDB Atlas)
 - A Gemini API key from [Google AI Studio](https://aistudio.google.com/)
 
 ### 1. Clone the repository
 ```bash
 git clone https://github.com/your-username/ecopulse.git
-cd ecopulse
 ```
 
 ### 2. Install dependencies
@@ -95,14 +104,16 @@ npm install
 Create a `.env` file in the root directory:
 ```env
 VITE_GEMINI_API_KEY=your_gemini_api_key_here
+MONGODB_URI=mongodb://your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret_key
 ```
-> **Note:** Although the variable is prefixed with `VITE_`, it is only read by the **server-side** Express proxy (`server.js`) and is never bundled into the client. The `VITE_` prefix is retained for backwards compatibility.
+> **Note:** Although the API key is prefixed with `VITE_`, it is only read by the **server-side** Express proxy (`server.js`) and is never bundled into the client. The `VITE_` prefix is retained for backwards compatibility.
 
 ### 4. Run the development server (frontend only)
 ```bash
 npm run dev
 ```
-This starts the Vite dev server at `http://localhost:5173`.
+This starts the Vite dev server at `http://localhost:5173`. Ensure your backend server is running concurrently on port `8080` if testing authentication and profile persistence.
 
 ### 5. Run the production server (frontend + backend)
 First build the frontend, then start the Express server:
@@ -129,36 +140,40 @@ npm run test:coverage
 ### Build and run with Docker locally
 ```bash
 docker build -t ecopulse .
-docker run -p 8080:8080 -e VITE_GEMINI_API_KEY=your_key_here ecopulse
+docker run -p 8080:8080 \
+  -e VITE_GEMINI_API_KEY=your_gemini_key_here \
+  -e MONGODB_URI=your_mongodb_uri_here \
+  -e JWT_SECRET=your_jwt_secret_here \
+  ecopulse
 ```
 
 ### Deploy to Google Cloud Run
-The app is configured for deployment to Google Cloud Run. Ensure you have the `gcloud` CLI set up, then:
-```bash
-# Build and push the image
-gcloud builds submit --tag gcr.io/YOUR_PROJECT_ID/ecopulse
+The app is configured for deployment to Google Cloud Run. Ensure you have the `gcloud` CLI set up, then run the deployment command. 
 
-# Deploy to Cloud Run
+> **Important:** Since MongoDB Atlas connection strings for replica sets contain commas, you must specify a custom delimiter (like `;`) for the `--set-env-vars` flag to avoid parsing errors.
+
+```bash
 gcloud run deploy ecopulse \
-  --image gcr.io/YOUR_PROJECT_ID/ecopulse \
-  --platform managed \
+  --source . \
   --region asia-south2 \
+  --project YOUR_PROJECT_ID \
   --allow-unauthenticated \
-  --set-env-vars VITE_GEMINI_API_KEY=your_key_here
+  --set-env-vars "^;^MONGODB_URI=your_mongodb_connection_string;VITE_GEMINI_API_KEY=your_gemini_key;JWT_SECRET=your_jwt_secret"
 ```
 
 **Live Demo:** [https://ecopulse-802996668281.asia-south2.run.app](https://ecopulse-802996668281.asia-south2.run.app)
 
 ## 🔒 Security Features
-* **API Key Protection**: The Gemini API key lives exclusively on the server. It is read from environment variables and never bundled into the client JavaScript.
-* **Rate Limiting**: All `/api/*` routes are limited to **50 requests per 15 minutes** per IP using `express-rate-limit`, preventing abuse.
-* **CORS Whitelist**: The server only accepts cross-origin requests from the production Cloud Run URL and `localhost:5173` during development.
-* **Input Sanitization**: Request bodies are validated (format, type checks) before being forwarded to the Gemini API.
-* **Request Size Limit**: JSON payloads are capped at `10mb` to prevent large-payload denial-of-service attacks.
+* **Authentication & Authorization**: Password hashing using `bcryptjs` and user session tokens signed with `jsonwebtoken` (JWT).
+* **Protected Routes**: Middleware verifies authentication tokens on all user-specific profile, habit, and chat routes.
+* **API Key Protection**: Sensitive API keys and database credentials live exclusively on the server, never exposed in client bundles.
+* **Rate Limiting**: All `/api/*` routes are rate-limited using `express-rate-limit` to prevent denial-of-service and brute-force attacks.
+* **CORS Whitelist**: Restricts API calls to approved origins (the production URL and `localhost:5173`).
+* **Payload Constraints**: JSON request sizes are capped at `10mb`.
 
 ## 🧪 Testing Strategy
 * **Unit Testing**: Utility functions (e.g., `carbonCalculations.js`, `scannerEngine.js`) tested with **Vitest**.
-* **Component Testing**: React components (e.g., `CarbonScannerCard.jsx`, `RecommendationsCard.jsx`) tested with **React Testing Library**.
+* **Component Testing**: React components (e.g., `CarbonScannerCard.jsx`, `AuthPage.jsx`) tested with **React Testing Library**.
 * **Coverage Tracking**: Automated coverage reports via `@vitest/coverage-v8` with enforced thresholds (80% lines/functions/statements, 75% branches).
 
 ## ♿ Accessibility Compliance
@@ -170,9 +185,12 @@ gcloud run deploy ecopulse \
 ## 📦 Project Structure
 ```
 ecopulse/
+├── models/
+│   └── User.js           # Mongoose User database schema
 ├── src/
 │   ├── components/
 │   │   ├── AccessibilitySettings.jsx
+│   │   ├── AuthPage.jsx  # Authentication views (Login/Register/Recovery)
 │   │   ├── CarbonForecastCard.jsx
 │   │   ├── CarbonPersonalityCard.jsx
 │   │   ├── CarbonScannerCard.jsx
@@ -188,10 +206,10 @@ ecopulse/
 │   │   └── RecommendationsCard.jsx
 │   ├── utils/            # Carbon calculations, scanner engine, etc.
 │   ├── __tests__/        # Integration & unit tests
-│   ├── App.jsx           # Main application & dashboard
+│   ├── App.jsx           # Main application dashboard & routing
 │   ├── index.css         # Global design system
 │   └── main.jsx
-├── server.js             # Express proxy server (production)
+├── server.js             # Express API gateway & proxy server (production)
 ├── Dockerfile            # Multi-stage Docker build
 ├── vite.config.js        # Vite + Vitest configuration
 └── package.json
@@ -200,5 +218,4 @@ ecopulse/
 ## 🔭 Future Scope
 * **Social Sharing**: Allow users to share carbon reduction milestones on social media.
 * **Organizational Accounts**: Scale the platform to support enterprise-level footprint tracking and ESG reporting.
-* **Database Integration**: Persist user data and history with a cloud database (e.g., Firestore).
 * **Push Notifications**: Remind users of daily habit challenges and streaks.

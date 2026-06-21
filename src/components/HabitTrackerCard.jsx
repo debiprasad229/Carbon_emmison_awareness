@@ -45,7 +45,8 @@ export default function HabitTrackerCard({
   completedHabits = {}, 
   setCompletedHabits,
   habitSavings = 0,
-  setHabitSavings
+  setHabitSavings,
+  addNotification
 }) {
 
   const handleToggleHabit = (habitId, isChecked, xpValue, annualSavingValue) => {
@@ -74,6 +75,13 @@ export default function HabitTrackerCard({
 
     // 4. Update Projected Annual Carbon Savings
     setHabitSavings(prev => (isChecked ? prev + annualSavingValue : Math.max(0, prev - annualSavingValue)));
+
+    // 5. Trigger notification
+    if (isChecked && addNotification) {
+      const habit = HABITS.find(h => h.id === habitId);
+      const habitTitle = habit ? habit.title : 'Green Action';
+      addNotification('Challenges', 'Daily Action Logged', `${habitTitle} completed (+${xpValue} XP)`);
+    }
   };
 
   return (

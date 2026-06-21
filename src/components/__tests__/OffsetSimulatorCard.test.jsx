@@ -41,10 +41,15 @@ describe('OffsetSimulatorCard', () => {
   });
 
   it('slider change calls setOffsets', () => {
-    render(<OffsetSimulatorCard {...defaultProps} />);
+    let state = { treesPlanted: 10, cleanEnergyFund: 50, plasticRemoved: 20 };
+    const setOffsets = vi.fn(updater => {
+      state = updater(state);
+    });
+    render(<OffsetSimulatorCard offsets={state} setOffsets={setOffsets} />);
     const treeSlider = screen.getByLabelText('Plant Native Trees slider');
     fireEvent.change(treeSlider, { target: { value: '25', name: 'treesPlanted' } });
-    expect(defaultProps.setOffsets).toHaveBeenCalled();
+    expect(setOffsets).toHaveBeenCalled();
+    expect(state.treesPlanted).toBe(25);
   });
 
   it('shows car equivalency info when offset > 0', () => {
@@ -58,5 +63,18 @@ describe('OffsetSimulatorCard', () => {
       setOffsets={vi.fn()} 
     />);
     expect(screen.queryByText(/Equivalent to removing/)).not.toBeInTheDocument();
+  });
+
+  it('slider change defaults to 0 on invalid input', () => {
+    let state = { treesPlanted: 10, cleanEnergyFund: 50, plasticRemoved: 20 };
+    const setOffsets = vi.fn(updater => {
+      state = updater(state);
+    });
+    render(<OffsetSimulatorCard offsets={state} setOffsets={setOffsets} />);
+    const treeSlider = screen.getByLabelText('Plant Native Trees slider');
+    
+    treeSlider.type = 'text';
+    fireEvent.change(treeSlider, { target: { value: 'invalid', name: 'treesPlanted' } });
+    expect(state.treesPlanted).toBe(0);
   });
 });

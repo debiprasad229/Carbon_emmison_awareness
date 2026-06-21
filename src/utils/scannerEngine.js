@@ -114,7 +114,7 @@ export function parseDocumentLocally(text = '', fileName = '') {
  * @param {string} mimeType - Image mime type
  * @returns {Promise<Object>} JSON response from Gemini containing parsed data
  */
-export async function parseDocumentWithGemini(base64Data, mimeType) {
+export async function parseDocumentWithGemini(base64Data, mimeType, token) {
   if (!GEMINI_API_KEY) {
     throw new Error("Gemini API key is not configured.");
   }
@@ -148,6 +148,7 @@ Return ONLY a valid JSON object matching this schema (do not wrap in markdown or
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': `Bearer ${token}` } : {})
     },
     body: JSON.stringify({
       contents: [

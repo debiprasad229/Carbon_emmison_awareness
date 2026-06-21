@@ -2,7 +2,8 @@
  * Unit Tests for scannerEngine.js
  */
 import { describe, it, expect } from 'vitest';
-import { parseDocumentLocally } from '../scannerEngine';
+import { parseDocumentLocally, parseDocumentWithGemini } from '../scannerEngine';
+import { vi } from 'vitest';
 
 describe('scannerEngine - parseDocumentLocally', () => {
   it('identifies and parses electricity bill with kWh keywords', () => {
@@ -49,5 +50,87 @@ describe('scannerEngine - parseDocumentLocally', () => {
     expect(result.documentType).toBe('shopping_receipt'); // default
     expect(result.parsedData.usageValue).toBe(85); // fallback default
     expect(result.confidence).toBe(70);
+  });
+});
+
+describe('scannerEngine - parseDocumentWithGemini', () => {
+  const sampleResponse = {
+    documentType: 'electricity_bill',
+    confidence: 95,
+    extractedText: 'Usage: 100 kWh',
+    parsedData: {
+      usageValue: 100,
+      unit: 'kWh',
+      details: 'Test Power'
+    },
+    calculatedCarbon: 38
+  };
+
+  it('successfully scans and parses a document', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        candidates: [{
+          content: {
+            parts: [{
+              text: JSON.stringify(sampleResponse)
+            }]
+          }
+        }]
+      })
+    });
+    global.fetch = mockFetch;
+
+    const result = await parseDocumentWithGemini('data:image/jpeg;base64,YWJj', 'image/jpeg');
+    expect(mockFetch).toHaveBeenCalledWith('/api/scan', expect.any(Object));
+    expect(result.documentType).toBe('electricity_bill');
+    expect(result.calculatedCarbon).toBe(38);
+  });
+
+  it('throws an error if response is not ok', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error'
+    });
+    global.fetch = mockFetch;
+
+    await expect(parseDocumentWithGemini('YWJj', 'image/jpeg')).rejects.toThrow('API Error: 500 Internal Server Error');
+  });
+
+  it('throws an error if response text is empty', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        candidates: [{
+          content: {
+            parts: []
+          }
+        }]
+      })
+    });
+    global.fetch = mockFetch;
+
+    await expect(parseDocumentWithGemini('YWJj', 'image/jpeg')).rejects.toThrow('Empty response from OCR scanner.');
+  });
+
+  it('falls back to local parsing if response text is not valid JSON', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        candidates: [{
+          content: {
+            parts: [{
+              text: 'This is an electricity bill with 450 kWh of usage'
+            }]
+          }
+        }]
+      })
+    });
+    global.fetch = mockFetch;
+
+    const result = await parseDocumentWithGemini('YWJj', 'image/jpeg');
+    expect(result.documentType).toBe('electricity_bill');
+    expect(result.parsedData.usageValue).toBe(450);
   });
 });
